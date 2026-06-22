@@ -5,6 +5,7 @@ import {
   getPageBySlug,
   getPostBySlug,
   decode,
+  internalizeLinks,
   type WpContentNode,
 } from "@/lib/wp";
 import { yoastToMetadata } from "@/lib/seo";
@@ -72,7 +73,7 @@ export default async function ContentPage(props: PageProps<"/[slug]">) {
 
       <div
         className="wp-content mt-8"
-        dangerouslySetInnerHTML={{ __html: node.content.rendered }}
+        dangerouslySetInnerHTML={{ __html: internalizeLinks(node.content.rendered) }}
       />
     </article>
   );

@@ -1,6 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
+import HowItWorks from "@/components/home/HowItWorks";
+import Testimonials from "@/components/home/Testimonials";
+import AiPromo from "@/components/home/AiPromo";
+import HomeFaq from "@/components/home/HomeFaq";
 import {
   getProducts,
   getStoreCategories,
@@ -79,6 +83,20 @@ export default async function Home() {
                 </Link>
               ))}
             </div>
+
+            {/* Social proof */}
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/80">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-amber-300">★★★★★</span>
+                <span className="font-semibold text-white">4.9</span> rating
+              </span>
+              <span className="hidden h-4 w-px bg-white/20 sm:block" />
+              <span>
+                <span className="font-semibold text-white">50,000+</span> invitations created
+              </span>
+              <span className="hidden h-4 w-px bg-white/20 sm:block" />
+              <span>⚡ Instant WhatsApp delivery</span>
+            </div>
           </div>
         </div>
       </section>
@@ -140,8 +158,14 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* How it works */}
+      <HowItWorks />
+
       {/* Popular */}
       <ProductRow title="Trending now" products={popular.items} href="/shop" />
+
+      {/* AI Maker promo */}
+      <AiPromo />
 
       {/* Quote band */}
       <section className="bg-ink py-16 text-center text-white">
@@ -162,6 +186,12 @@ export default async function Home() {
 
       {/* Latest */}
       <ProductRow title="New arrivals" products={latest.items} href="/shop" />
+
+      {/* Testimonials */}
+      <Testimonials />
+
+      {/* FAQ */}
+      <HomeFaq />
     </div>
   );
 }

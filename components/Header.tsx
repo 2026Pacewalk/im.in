@@ -3,6 +3,8 @@ import { getCategoryTree, type CategoryNode } from "@/lib/wp";
 import MegaMenu from "@/components/MegaMenu";
 import MobileMenu from "@/components/MobileMenu";
 import CartButton from "@/components/CartButton";
+import WishlistLink from "@/components/WishlistLink";
+import AccountLink from "@/components/AccountLink";
 
 function Logo() {
   return (
@@ -54,12 +56,22 @@ export default async function Header() {
           <Link href="/shop" className="hover:text-brand-600">
             Shop
           </Link>
+          <Link
+            href="/ai-invitation-maker"
+            className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-brand-600 to-brand-800 px-3 py-1.5 text-white shadow-sm transition hover:brightness-110"
+          >
+            ✦ AI Maker
+          </Link>
           <Link href="/become-a-reseller" className="hover:text-brand-600">
             Reseller
           </Link>
         </nav>
 
-        <div className="ml-auto md:ml-0">
+        <div className="ml-auto flex items-center gap-0.5 md:ml-0">
+          <span className="hidden sm:block">
+            <WishlistLink />
+          </span>
+          <AccountLink />
           <CartButton />
         </div>
       </div>

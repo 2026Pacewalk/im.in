@@ -5,6 +5,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CartProvider from "@/components/CartProvider";
 import CartDrawer from "@/components/CartDrawer";
+import WishlistProvider from "@/components/WishlistProvider";
+import AuthProvider from "@/components/AuthProvider";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { SITE } from "@/lib/wp";
 
 const poppins = Poppins({
@@ -40,12 +43,17 @@ export default function RootLayout({
       className={`${poppins.variable} ${playfair.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-cream text-ink">
-        <CartProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <CartDrawer />
-        </CartProvider>
+        <AuthProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <CartDrawer />
+              <WhatsAppFloat />
+            </CartProvider>
+          </WishlistProvider>
+        </AuthProvider>
       </body>
     </html>
   );

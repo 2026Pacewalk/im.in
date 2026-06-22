@@ -118,6 +118,27 @@ summary:focus-visible {
   border-radius: 0.75rem;
   margin: 1em 0;
 }
+/* Lone images (e.g. the "How To Make" step icons) — center them and drop the
+   rounded-corner / large-margin treatment meant for big content images. */
+.wp-content p > img:only-child {
+  display: block;
+  margin: 0.25em auto;
+  border-radius: 0;
+}
+/* Style the "icon → Step N → caption" sequence as a tidy centered step. */
+.wp-content p:has(> img:only-child) {
+  margin-bottom: 0.25em;
+}
+.wp-content p:has(> img:only-child) + h2 {
+  text-align: center;
+  font-size: 1.15rem;
+  margin: 0 0 0.15em;
+}
+.wp-content p:has(> img:only-child) + h2 + p {
+  text-align: center;
+  color: #6b6472;
+  margin-bottom: 1.5em;
+}
 .wp-content table {
   width: 100%;
   border-collapse: collapse;

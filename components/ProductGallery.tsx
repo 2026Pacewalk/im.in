@@ -36,7 +36,7 @@ export default function ProductGallery({
 
   return (
     <div>
-      <div className="group relative aspect-square overflow-hidden rounded-2xl border border-gray-100 bg-gradient-to-br from-brand-50 to-rose-50">
+      <div className="group relative aspect-square overflow-hidden rounded-3xl border border-gold/20 bg-gradient-to-br from-brand-50 via-cream to-rose-50 p-3 shadow-[0_20px_60px_-25px_rgba(74,14,34,0.45)] ring-1 ring-black/5">
         <Image
           key={current.id}
           src={current.src}
@@ -44,7 +44,7 @@ export default function ProductGallery({
           fill
           priority
           sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-contain transition-transform duration-300 group-hover:scale-105"
+          className="rounded-2xl object-contain p-3 transition-transform duration-500 group-hover:scale-105"
         />
       </div>
 

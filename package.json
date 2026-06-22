@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
+    "html-to-image": "^1.11.13",
     "next": "16.2.9",
     "node-html-parser": "^8.0.2",
     "react": "19.2.4",

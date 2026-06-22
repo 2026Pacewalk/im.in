@@ -75,11 +75,76 @@ export function cleanHtml(input?: string): string {
   h = h.replace(/<a[^>]*add_to_wishlist[^>]*>[\s\S]*?<\/a>/gi, "");
   h = h.replace(/<!--[\s\S]*?-->/g, "");
   h = h.replace(/\[[^\]\n]{0,80}\]/g, ""); // leftover [shortcodes]
+  // Strip inline style attributes (merchant-baked highlight backgrounds,
+  // justified text, hard-coded colours) so content inherits our clean styling.
+  h = h.replace(/\s+style=(["'])[\s\S]*?\1/gi, "");
+  // Drop hashtag-spam paragraphs (e.g. "#grihapravesh #ecards ...").
+  h = h.replace(/<p[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*(?:#[^\s<#]+(?:\s|&nbsp;|<br\s*\/?>)*){2,}<\/p>/gi, "");
   // drop empty paragraphs / headings (only whitespace, &nbsp; or <br>)
   h = h.replace(/<(p|h[1-6])[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/\1>/gi, "");
   h = h.replace(/(<br\s*\/?>\s*){2,}/gi, "<br>"); // collapse br stacks
   h = h.replace(/(&nbsp;\s*){2,}/gi, " ");
-  return h.trim();
+  return internalizeLinks(h).trim();
+}
+
+/**
+ * Extract just the genuine intro copy from a WooCommerce product description.
+ * Merchant descriptions bolt on boilerplate after the real text — a "How To
+ * Make…" step list, a "Reasons to get…" benefits list, hashtag spam and
+ * promotional links ("CLICK HERE", "Order On WhatsApp"). We render our own
+ * designed sections for those, so here we keep only the lead paragraphs.
+ */
+export function productIntro(input: string | undefined, productName: string): string {
+  if (!input) return "";
+  let h = input;
+  // Cut everything from the first boilerplate heading/marker onward.
+  const cutMarkers = [
+    /<h[1-6][^>]*>\s*how to (make|order|create)[\s\S]*$/i,
+    /<h[1-6][^>]*>\s*reasons to (get|buy|choose)[\s\S]*$/i,
+    /<h[1-6][^>]*>\s*want to make something different[\s\S]*$/i,
+    /<h[1-6][^>]*>\s*for custom design[\s\S]*$/i,
+    /<h[1-6][^>]*>[^<]*\bsteps?\b[\s\S]*$/i,
+  ];
+  for (const re of cutMarkers) h = h.replace(re, "");
+  // Remove a leading duplicate title heading (often "<Name> | IM-1234").
+  const firstName = productName.split(/[|–-]/)[0].trim().slice(0, 24).toLowerCase();
+  h = h.replace(/^\s*<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/i, (m, inner: string) => {
+    const t = inner.replace(/<[^>]+>/g, "").toLowerCase();
+    return t.includes("|") || (firstName && t.includes(firstName)) ? "" : m;
+  });
+  return cleanHtml(h);
+}
+
+/**
+ * Rewrite absolute invitemart.in anchor links inside WP/Elementor HTML to
+ * relative paths, so clicking in-content links keeps the visitor on this app
+ * instead of bouncing them to the live site.
+ *
+ * Left absolute on purpose (these must still load from the live origin):
+ *   - images / downloads / any /wp-content, /wp-admin, /wp-json, /wp-includes
+ *   - links to actual files (…/something.pdf, .jpg, .zip, …)
+ * Only the `href` attribute is touched — `src` (images, media) is untouched.
+ */
+export function internalizeLinks(input?: string): string {
+  if (!input) return "";
+  // Legacy domain: invitemart.com no longer serves assets (404), but the same
+  // paths exist on invitemart.in. Rewrite .com -> .in for BOTH images (src) and
+  // links (href) so inline content images stop breaking.
+  const normalized = input.replace(
+    /https?:\/\/(?:www\.)?invitemart\.com/gi,
+    "https://invitemart.in"
+  );
+  return normalized.replace(
+    /href=(["'])https?:\/\/(?:www\.)?invitemart\.in(\/[^"']*)?\1/gi,
+    (match, quote: string, path?: string) => {
+      const p = path || "/";
+      const lastSegment = p.split(/[?#]/)[0].split("/").pop() || "";
+      const isAsset = /^\/wp-(content|admin|json|includes|login)/i.test(p);
+      const isFile = /\.[a-z0-9]{2,5}$/i.test(lastSegment);
+      if (isAsset || isFile) return match; // keep on the live origin
+      return `href=${quote}${p}${quote}`;
+    }
+  );
 }
 
 // ---------------------------------------------------------------------------

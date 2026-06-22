@@ -43,9 +43,25 @@ export default function ProductOptions({
 
   const total = basePrice + optionsTotal;
 
+  // Conditional fields: a "Google Map Link" (text) field only applies once its
+  // "Add Google Location on PDF Card" checkbox is ticked — otherwise it's hidden.
+  function isFieldHidden(f: WcpaField): boolean {
+    if (f.type !== "text" && f.type !== "textarea") return false;
+    if (!/map\s*link|google\s*map/i.test(f.title)) return false;
+    const gate = fields.find(
+      (g) =>
+        g.type === "checkbox-group" &&
+        /google\s*location|location on (the )?pdf/i.test(g.title)
+    );
+    if (!gate) return false;
+    const set = checks[gate.id];
+    return !(set && set.size > 0); // hidden until the checkbox is selected
+  }
+
   function selectedSummary(): string {
     const lines: string[] = [];
     for (const f of fields) {
+      if (isFieldHidden(f)) continue;
       if (f.type === "radio-group" || f.type === "select") {
         const i = radio[f.id];
         if (i != null && f.options[i])
@@ -72,15 +88,16 @@ export default function ProductOptions({
   }
 
   return (
-    <div className="mt-6 space-y-5">
+    <div className="mt-6 space-y-3">
       {fields.map((f) => {
+        if (isFieldHidden(f)) return null;
         if (f.type === "separator") {
-          return <div key={f.id} className="gold-rule opacity-60" />;
+          return null;
         }
         return (
           <div
             key={f.id}
-            className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm"
+            className="rounded-xl border border-black/5 bg-white p-3.5 shadow-sm"
           >
             <label className="block text-sm font-semibold text-ink">
               {f.title}

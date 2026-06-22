@@ -10,6 +10,8 @@ const COL_SHOP = [
 
 const COL_INFO = [
   { label: "Shop All", href: "/shop" },
+  { label: "My Account", href: "/my-account" },
+  { label: "My Wishlist", href: "/wishlist" },
   { label: "Become a Reseller", href: "/become-a-reseller" },
   { label: "Blog", href: "/blog" },
 ];
