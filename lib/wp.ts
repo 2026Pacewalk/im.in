@@ -116,6 +116,50 @@ export function productIntro(input: string | undefined, productName: string): st
 }
 
 /**
+ * Clean a blog/article body for display. Lighter than cleanHtml: it strips
+ * scripts, inline styles, comments, hashtag spam and empty blocks, but KEEPS
+ * images and figures (which are real article content, not product-card junk).
+ */
+export function cleanArticleHtml(input?: string): string {
+  if (!input) return "";
+  let h = input;
+  h = h.replace(/<script[\s\S]*?<\/script>/gi, "");
+  h = h.replace(/<style[\s\S]*?<\/style>/gi, "");
+  h = h.replace(/<!--[\s\S]*?-->/g, "");
+  // Strip merchant-baked WooCommerce product grids + wishlist widgets (we render
+  // our own "Shop related designs" showcase instead). Keep genuine article images.
+  h = h.replace(/<ul[^>]*class="[^"]*\bproducts\b[^"]*"[\s\S]*?<\/ul>/gi, "");
+  h = h.replace(/<div[^>]*class="[^"]*yith-wcwl[^"]*"[\s\S]*?<\/div>/gi, "");
+  h = h.replace(/<a[^>]*add_to_wishlist[^>]*>[\s\S]*?<\/a>/gi, "");
+  h = h.replace(/<a[^>]*class="[^"]*add_to_cart_button[^"]*"[^>]*>[\s\S]*?<\/a>/gi, "");
+  h = h.replace(/<a[^>]*>\s*(?:select options|view more|add to wishlist)\s*<\/a>/gi, "");
+  // Strip WooCommerce price markup + leftover product-title links (with SKU).
+  h = h.replace(/<(del|ins|bdi)[^>]*>[\s\S]*?<\/\1>/gi, "");
+  h = h.replace(/<span[^>]*class="[^"]*(?:woocommerce-Price|price|amount)[^"]*"[\s\S]*?<\/span>/gi, "");
+  h = h.replace(/Current price is:|Original price was:/gi, "");
+  h = h.replace(/<a[^>]*>[^<|]*\|\s*[A-Za-z]{1,3}-\d[^<]*<\/a>/gi, "");
+  // Product thumbnail links + standalone leftover price text.
+  h = h.replace(/<a[^>]*href="[^"]*\/product\/[^"]*"[^>]*>\s*(?:<img[^>]*>)?\s*<\/a>/gi, "");
+  // Bare leftover price amounts (merchant promo) — articles don't need them.
+  // Handle the literal ₹ and its HTML entity forms (&#8377; / &#x20b9;).
+  h = h.replace(/(?:Rs\.?|INR|₹|&#8377;|&#x20b9;)\s*[\d,]+(?:\.\d{1,2})?/gi, "");
+  h = h.replace(/\s+style=(["'])[\s\S]*?\1/gi, ""); // strip inline styles
+  // Drop hashtag-spam paragraphs.
+  h = h.replace(/<p[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*(?:#[^\s<#]+(?:\s|&nbsp;|<br\s*\/?>)*){2,}<\/p>/gi, "");
+  h = h.replace(/<(p|h[1-6])[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/\1>/gi, "");
+  h = h.replace(/(<br\s*\/?>\s*){2,}/gi, "<br>");
+  h = h.replace(/(&nbsp;\s*){2,}/gi, " ");
+  return internalizeLinks(h).trim();
+}
+
+/** Estimate reading time (minutes) from HTML body text. */
+export function readingTime(html?: string): number {
+  if (!html) return 1;
+  const words = html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+/**
  * Rewrite absolute invitemart.in anchor links inside WP/Elementor HTML to
  * relative paths, so clicking in-content links keeps the visitor on this app
  * instead of bouncing them to the live site.

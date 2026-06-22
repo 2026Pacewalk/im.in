@@ -4,11 +4,14 @@ import { notFound } from "next/navigation";
 import {
   getPageBySlug,
   getPostBySlug,
+  getRecentPosts,
+  getProducts,
   decode,
   internalizeLinks,
   type WpContentNode,
 } from "@/lib/wp";
 import { yoastToMetadata } from "@/lib/seo";
+import BlogArticle from "@/components/blog/BlogArticle";
 
 export const revalidate = 3600;
 
@@ -42,20 +45,45 @@ export default async function ContentPage(props: PageProps<"/[slug]">) {
   if (!resolved) notFound();
 
   const { node, kind } = resolved;
+
+  // Blog posts get the full premium article treatment.
+  if (kind === "post") {
+    // Derive a product search term from the title (e.g. "Crafting Mata Ki
+    // Chowki Invitation Design Tips and Tricks" -> "Mata Ki Chowki Invitation")
+    // so we can showcase relevant designs inside the article.
+    const term = decode(node.title.rendered)
+      .replace(
+        /\b(crafting|craft|design|designs|tips|tricks|ideas?|guide|complete|ultimate|best|top|how|to|make|making|create|creating|a|an|the|and|for|your|with|of|in|on|&|20\d\d)\b/gi,
+        ""
+      )
+      .replace(/[^a-z0-9\s]/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const [recent, productRes] = await Promise.all([
+      getRecentPosts(6).catch(() => []),
+      term
+        ? getProducts({ search: term, perPage: 5, orderby: "popularity" }).catch(
+            () => ({ items: [] as Awaited<ReturnType<typeof getProducts>>["items"] })
+          )
+        : Promise.resolve({ items: [] as Awaited<ReturnType<typeof getProducts>>["items"] }),
+    ]);
+    const related = recent.filter((p) => p.id !== node.id);
+    return (
+      <BlogArticle
+        node={node}
+        related={related}
+        products={productRes.items}
+        productTerm={term}
+      />
+    );
+  }
+
   const featured = node._embedded?.["wp:featuredmedia"]?.[0];
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-10">
-      {kind === "post" && node.date && (
-        <p className="mb-2 text-sm text-gray-500">
-          {new Date(node.date).toLocaleDateString("en-IN", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
-      )}
-      <h1 className="text-3xl font-extrabold leading-tight">
+      <h1 className="font-display text-3xl font-extrabold leading-tight text-ink">
         {decode(node.title.rendered)}
       </h1>
 
