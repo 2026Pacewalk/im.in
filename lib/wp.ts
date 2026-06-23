@@ -129,6 +129,13 @@ export function cleanArticleHtml(input?: string): string {
   // Strip merchant-baked WooCommerce product grids + wishlist widgets (we render
   // our own "Shop related designs" showcase instead). Keep genuine article images.
   h = h.replace(/<ul[^>]*class="[^"]*\bproducts\b[^"]*"[\s\S]*?<\/ul>/gi, "");
+  // Remove individual WooCommerce product cards from a related grid — each is an
+  // <li class="… product-type-…"> containing placeholder/thumbnail images that
+  // break in our app (we show our own "Shop related designs" section instead).
+  h = h.replace(/<li[^>]*class="[^"]*product-type-[\s\S]*?<\/li>/gi, "");
+  h = h.replace(/<a[^>]*class="[^"]*\bproduct-image\b[^"]*"[\s\S]*?<\/a>/gi, "");
+  h = h.replace(/<img[^>]*woocommerce-placeholder[^>]*>/gi, "");
+  h = h.replace(/<span[^>]*class="[^"]*\bonsale\b[^"]*"[\s\S]*?<\/span>/gi, "");
   h = h.replace(/<div[^>]*class="[^"]*yith-wcwl[^"]*"[\s\S]*?<\/div>/gi, "");
   h = h.replace(/<a[^>]*add_to_wishlist[^>]*>[\s\S]*?<\/a>/gi, "");
   h = h.replace(/<a[^>]*class="[^"]*add_to_cart_button[^"]*"[^>]*>[\s\S]*?<\/a>/gi, "");
