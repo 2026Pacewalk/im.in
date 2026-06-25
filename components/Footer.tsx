@@ -15,10 +15,12 @@ const INFORMATION = [
 
 const USER_AREA = [
   { label: "My account", href: "/my-account" },
-  { label: "FAQs", href: "/#faq" },
+  { label: "FAQs", href: "/faq" },
+  { label: "Contact Us", href: "/contact-us" },
   { label: "Privacy Policy", href: "/privacy-policy" },
   { label: "Terms & Conditions", href: "/terms-conditions" },
   { label: "Return Policy", href: "/return-policy" },
+  { label: "GST Pay Online", href: "/gst-pay-online" },
   { label: "Become a Reseller", href: "/become-a-reseller" },
   { label: "Discount Coupon Codes", href: "/discount-offers-coupon-code" },
 ];
