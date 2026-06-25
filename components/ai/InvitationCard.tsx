@@ -7,12 +7,13 @@ interface Props {
   copy: InvitationCopy;
   theme: ThemeDef;
   details: Pick<InvitationInput, "date" | "time" | "venue">;
+  rsvp?: string;
 }
 
 // The rendered invitation. Pure CSS/text (no external images) so it exports to
 // PNG cleanly via html-to-image. `forwardRef` exposes the node for capture.
 const InvitationCard = forwardRef<HTMLDivElement, Props>(function InvitationCard(
-  { copy, theme, details },
+  { copy, theme, details, rsvp },
   ref
 ) {
   return (
@@ -92,6 +93,15 @@ const InvitationCard = forwardRef<HTMLDivElement, Props>(function InvitationCard
         >
           {copy.closing}
         </p>
+
+        {rsvp && (
+          <p
+            className="mt-4 inline-block rounded-full px-4 py-1 text-xs font-semibold"
+            style={{ border: `1px solid ${theme.accent}`, color: theme.ink }}
+          >
+            RSVP · {rsvp}
+          </p>
+        )}
 
         <div
           style={{ color: theme.accent }}

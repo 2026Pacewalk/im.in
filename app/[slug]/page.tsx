@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
@@ -7,7 +7,7 @@ import {
   getRecentPosts,
   getProducts,
   decode,
-  internalizeLinks,
+  cleanArticleHtml,
   type WpContentNode,
 } from "@/lib/wp";
 import { yoastToMetadata } from "@/lib/seo";
@@ -79,30 +79,47 @@ export default async function ContentPage(props: PageProps<"/[slug]">) {
     );
   }
 
-  const featured = node._embedded?.["wp:featuredmedia"]?.[0];
+  // Static WordPress pages (privacy, terms, return policy, about, contact…) get
+  // a clean "document" layout with a header band and a readable content card.
+  const title = decode(node.title.rendered);
+  const html = cleanArticleHtml(node.content.rendered);
+  const updated = node.date
+    ? new Date(node.date).toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "";
 
   return (
-    <article className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="font-display text-3xl font-extrabold leading-tight text-ink">
-        {decode(node.title.rendered)}
-      </h1>
+    <div className="bg-cream pb-16">
+      {/* Header band */}
+      <section className="bg-gradient-to-br from-ink via-brand-900 to-brand-700 text-white">
+        <div className="mx-auto max-w-4xl px-4 py-14 text-center">
+          <nav className="flex items-center justify-center gap-1 text-sm text-white/60">
+            <Link href="/" className="hover:text-gold-soft">Home</Link>
+            <span>/</span>
+            <span className="text-white/80">{title}</span>
+          </nav>
+          <h1 className="mt-4 font-display text-3xl font-bold md:text-4xl">
+            {title}
+          </h1>
+          {updated && (
+            <p className="mt-3 text-sm text-white/60">Last updated: {updated}</p>
+          )}
+          <div className="gold-rule mx-auto mt-5 w-24 opacity-70" />
+        </div>
+      </section>
 
-      {featured?.source_url && (
-        <div className="relative mt-6 aspect-[16/9] overflow-hidden rounded-2xl">
-          <Image
-            src={featured.source_url}
-            alt={featured.alt_text ? decode(featured.alt_text) : decode(node.title.rendered)}
-            fill
-            sizes="(max-width: 768px) 100vw, 768px"
-            className="object-cover"
+      {/* Content card */}
+      <article className="mx-auto -mt-8 max-w-3xl px-4">
+        <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm md:p-10">
+          <div
+            className="wp-content"
+            dangerouslySetInnerHTML={{ __html: html }}
           />
         </div>
-      )}
-
-      <div
-        className="wp-content mt-8"
-        dangerouslySetInnerHTML={{ __html: internalizeLinks(node.content.rendered) }}
-      />
-    </article>
+      </article>
+    </div>
   );
 }

@@ -4,6 +4,7 @@ import ProductCard from "@/components/ProductCard";
 import HowItWorks from "@/components/home/HowItWorks";
 import Testimonials from "@/components/home/Testimonials";
 import AiPromo from "@/components/home/AiPromo";
+import CustomCta from "@/components/home/CustomCta";
 import HomeFaq from "@/components/home/HomeFaq";
 import {
   getProducts,
@@ -28,7 +29,9 @@ export default async function Home() {
     getStoreCategories({ perPage: 12, parent: 0, orderby: "count", order: "desc" }),
   ]);
 
-  const topCats: StoreCategory[] = cats.filter((c) => c.count > 0).slice(0, 8);
+  const topCats: StoreCategory[] = cats
+    .filter((c) => c.count > 0 && !/death/i.test(c.slug))
+    .slice(0, 8);
 
   return (
     <div>
@@ -189,6 +192,9 @@ export default async function Home() {
 
       {/* Testimonials */}
       <Testimonials />
+
+      {/* Custom design CTA */}
+      <CustomCta />
 
       {/* FAQ */}
       <HomeFaq />

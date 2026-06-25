@@ -12,8 +12,10 @@ import {
 } from "@/lib/wp";
 import { yoastToMetadata } from "@/lib/seo";
 import { getProductOptions } from "@/lib/wcpa";
+import { getProductVideo } from "@/lib/product-media";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
+import ProductVideo from "@/components/product/ProductVideo";
 import ProductOptions from "@/components/ProductOptions";
 import AddToCart from "@/components/AddToCart";
 import MobileBuyBar from "@/components/MobileBuyBar";
@@ -62,13 +64,14 @@ export default async function ProductPage(
   const name = decode(product.name);
   const isVideo = /video/i.test(product.slug) || /video/i.test(product.name);
   const mainCat = product.categories?.[0];
-  const [related, optionFields] = await Promise.all([
+  const [related, optionFields, videoUrl] = await Promise.all([
     mainCat
       ? getProducts({ category: mainCat.slug, perPage: 6 }).then((r) =>
           r.items.filter((p) => p.id !== product.id)
         )
       : Promise.resolve([]),
     getProductOptions(slug),
+    getProductVideo(slug),
   ]);
   const hasOptions = optionFields.length > 0;
   const basePrice =
@@ -117,6 +120,15 @@ export default async function ProductPage(
         {/* Gallery (sticky on desktop) */}
         <div className="lg:sticky lg:top-24 lg:self-start">
           <ProductGallery images={product.images || []} name={name} />
+          {videoUrl && (
+            <div className="mt-3">
+              <ProductVideo
+                url={videoUrl}
+                name={name}
+                poster={product.images?.[0]?.src}
+              />
+            </div>
+          )}
         </div>
 
         {/* Info */}

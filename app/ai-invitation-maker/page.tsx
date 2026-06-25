@@ -1,6 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import InvitationMaker from "@/components/ai/InvitationMaker";
+import FreeVsPremium from "@/components/FreeVsPremium";
+import { OCCASIONS } from "@/lib/ai-invite";
+
+const STYLES = [
+  { name: "Watercolor", emoji: "🎨", bg: "linear-gradient(135deg,#f9a8d4,#a78bfa)" },
+  { name: "Botanical", emoji: "🌿", bg: "linear-gradient(135deg,#34d399,#0e7490)" },
+  { name: "Royal Maroon", emoji: "👑", bg: "linear-gradient(135deg,#7a1438,#3d0a1f)" },
+  { name: "Floral", emoji: "🌸", bg: "linear-gradient(135deg,#fb7185,#f59e0b)" },
+  { name: "Minimalist", emoji: "✦", bg: "linear-gradient(135deg,#334155,#0f172a)" },
+  { name: "Festive Saffron", emoji: "🪔", bg: "linear-gradient(135deg,#c2410c,#7a2e00)" },
+  { name: "Emerald & Gold", emoji: "❖", bg: "linear-gradient(135deg,#11503c,#0c2b22)" },
+  { name: "Art Deco", emoji: "◈", bg: "linear-gradient(135deg,#a16207,#1e293b)" },
+];
 
 export const metadata: Metadata = {
   title: "AI Invitation Maker — Create Invitation Cards Online Free | InviteMart",
@@ -59,6 +72,53 @@ export default function AiInvitationMakerPage() {
         <InvitationMaker />
       </section>
 
+      {/* AI maker for every occasion */}
+      <section className="border-t border-black/5 bg-cream">
+        <div className="mx-auto max-w-7xl px-4 py-14">
+          <div className="mb-8 text-center">
+            <h2 className="font-display text-3xl font-bold text-ink">
+              AI invitations for every occasion
+            </h2>
+            <div className="gold-rule mx-auto mt-4 w-24" />
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+            {OCCASIONS.map((o) => (
+              <Link
+                key={o.id}
+                href={`/ai-invitation-maker/${o.id}`}
+                className="flex flex-col items-center gap-2 rounded-2xl border border-black/5 bg-white p-5 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+              >
+                <span className="text-3xl">{o.icon}</span>
+                <span className="text-sm font-semibold text-ink">{o.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Get inspired — styles */}
+      <section className="mx-auto max-w-7xl px-4 py-14">
+        <div className="mb-8 text-center">
+          <h2 className="font-display text-3xl font-bold text-ink">Get inspired</h2>
+          <p className="mt-2 text-gray-500">Beautiful design styles to spark your invitation.</p>
+          <div className="gold-rule mx-auto mt-4 w-24" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {STYLES.map((s) => (
+            <div
+              key={s.name}
+              style={{ background: s.bg }}
+              className="flex aspect-[4/5] flex-col items-center justify-center rounded-2xl p-4 text-center text-white shadow-sm"
+            >
+              <span className="text-4xl drop-shadow">{s.emoji}</span>
+              <span className="font-display mt-3 text-lg font-bold drop-shadow">
+                {s.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* How it works */}
       <section className="border-t border-black/5 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-16">
@@ -84,6 +144,9 @@ export default function AiInvitationMakerPage() {
           </div>
         </div>
       </section>
+
+      {/* Free vs Premium */}
+      <FreeVsPremium />
 
       {/* FAQ */}
       <section className="mx-auto max-w-3xl px-4 py-16">

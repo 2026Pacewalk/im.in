@@ -17,9 +17,12 @@ export type OccasionId =
 
 export type ToneId = "elegant" | "traditional" | "playful" | "modern" | "devotional";
 
+export type Lang = "en" | "hi";
+
 export interface InvitationInput {
   occasion: OccasionId;
   tone: ToneId;
+  lang?: Lang;
   hostNames: string; // e.g. "Aarav & Diya" or "Sharma Family"
   guestOf?: string; // e.g. "Together with their families"
   date?: string; // free text, e.g. "Sunday, 14 Dec 2026"
@@ -176,24 +179,60 @@ const CLOSINGS: Record<ToneId, string[]> = {
   devotional: ["May the divine bless us all.", "Your blessings are our strength."],
 };
 
+// --- Hindi wording pools ---
+const HEADLINES_HI: Record<OccasionId, string[]> = {
+  wedding: ["शुभ विवाह", "विवाह समारोह"],
+  engagement: ["सगाई समारोह", "अंगूठी रस्म"],
+  birthday: ["जन्मदिन मुबारक", "जन्मदिन समारोह"],
+  anniversary: ["सालगिरह मुबारक", "वर्षगांठ समारोह"],
+  housewarming: ["गृह प्रवेश", "गृह प्रवेश समारोह"],
+  "baby-shower": ["गोद भराई", "बेबी शावर"],
+  puja: ["पूजा आमंत्रण", "पावन अनुष्ठान"],
+};
+const EYEBROWS_HI: Record<ToneId, string[]> = {
+  elegant: ["सहर्ष आमंत्रण", "हार्दिक निमंत्रण"],
+  traditional: ["बड़ों के आशीर्वाद से", "सपरिवार सादर आमंत्रित हैं"],
+  playful: ["आप आमंत्रित हैं!", "चलिए साथ जश्न मनाएं"],
+  modern: ["तारीख़ नोट करें", "हम जश्न मना रहे हैं"],
+  devotional: ["ईश्वर की कृपा से", "आपके आशीर्वाद की कामना"],
+};
+const INVITES_HI: Record<ToneId, string[]> = {
+  elegant: ["आपकी गरिमामयी उपस्थिति की कामना करते हैं", "इस ख़ुशी के अवसर पर आपका हार्दिक स्वागत है"],
+  traditional: ["सपरिवार पधारकर समारोह की शोभा बढ़ाएं", "अपने आशीर्वाद से इस अवसर को धन्य करें"],
+  playful: ["खाने-पीने और मस्ती में हमारे साथ जुड़ें", "आपके बिना यह जश्न अधूरा है"],
+  modern: ["इस यादगार जश्न में हमारे साथ जुड़ें", "हम साथ मिलकर जश्न मनाएंगे — आप ज़रूर आइए"],
+  devotional: ["प्रार्थना एवं प्रसाद में सम्मिलित होने की विनती", "आइए साथ मिलकर आशीर्वाद प्राप्त करें"],
+};
+const CLOSINGS_HI: Record<ToneId, string[]> = {
+  elegant: ["आपकी उपस्थिति हमारे लिए अनमोल है।", "आपके आगमन की प्रतीक्षा रहेगी।"],
+  traditional: ["आपके आशीर्वाद की कामना है।", "आपका आशीर्वाद हमारी शक्ति है।"],
+  playful: ["मिलते हैं वहीं — देर मत कीजिएगा!", "ज़रूर आइए, मज़ा दोगुना होगा!"],
+  modern: ["यादें बनाते हैं।", "मिलते हैं जल्द ही।"],
+  devotional: ["ईश्वर सबका कल्याण करें।", "आपके आशीर्वाद की कामना।"],
+};
+
 /** Produce invitation copy. `variant` (0..1) lets "regenerate" change results. */
 export function generateWording(
   input: InvitationInput,
   variant = 0.42
 ): InvitationCopy {
   const s = (variant + 0.137) % 1;
-  const names = (input.hostNames || "Our Family").trim();
-  const headline =
-    pick(HEADLINES[input.occasion] || HEADLINES.wedding, s) ;
-  let invite = pick(INVITES[input.tone] || INVITES.elegant, s);
+  const hi = input.lang === "hi";
+  const H = hi ? HEADLINES_HI : HEADLINES;
+  const E = hi ? EYEBROWS_HI : EYEBROWS;
+  const I = hi ? INVITES_HI : INVITES;
+  const C = hi ? CLOSINGS_HI : CLOSINGS;
+  const names = (input.hostNames || (hi ? "हमारा परिवार" : "Our Family")).trim();
+  const headline = pick(H[input.occasion] || H.wedding, s);
+  let invite = pick(I[input.tone] || I.elegant, s);
   if (input.extra && input.extra.trim()) {
     invite += `. ${input.extra.trim()}`;
   }
   return {
-    eyebrow: input.guestOf?.trim() || pick(EYEBROWS[input.tone] || EYEBROWS.elegant, s),
+    eyebrow: input.guestOf?.trim() || pick(E[input.tone] || E.elegant, s),
     headline,
     names,
     invite,
-    closing: pick(CLOSINGS[input.tone] || CLOSINGS.elegant, s),
+    closing: pick(C[input.tone] || C.elegant, s),
   };
 }

@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import type { CategoryNode } from "@/lib/wp";
-import { decodeEntities } from "@/lib/entities";
+import { MENU } from "@/lib/menu";
 
-export default function MobileMenu({ tree }: { tree: CategoryNode[] }) {
+export default function MobileMenu() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const close = () => setOpen(false);
@@ -98,27 +97,26 @@ export default function MobileMenu({ tree }: { tree: CategoryNode[] }) {
             Browse by occasion
           </p>
           <nav>
-            {tree.map((cat) => (
-              <details key={cat.id} className="group border-b border-black/5">
+            {MENU.map((item) => (
+              <details key={item.label} className="group border-b border-black/5">
                 <summary className="flex cursor-pointer list-none items-center justify-between py-3 font-medium text-ink">
-                  <Link href={`/product-category/${cat.slug}`} onClick={close}>
-                    {decodeEntities(cat.name)}
+                  <Link href={item.href} onClick={close}>
+                    {item.label}
                   </Link>
-                  {cat.children.length > 0 && (
+                  {item.children.length > 0 && (
                     <span className="text-gray-400 transition group-open:rotate-180">▾</span>
                   )}
                 </summary>
-                {cat.children.length > 0 && (
+                {item.children.length > 0 && (
                   <div className="pb-2 pl-3">
-                    {cat.children.slice(0, 12).map((child) => (
+                    {item.children.map((child) => (
                       <Link
-                        key={child.id}
-                        href={`/product-category/${child.slug}`}
+                        key={child.href + child.label}
+                        href={child.href}
                         onClick={close}
-                        className="flex items-center justify-between py-1.5 text-sm text-gray-600 hover:text-brand-600"
+                        className="block py-1.5 text-sm text-gray-600 hover:text-brand-600"
                       >
-                        <span>{decodeEntities(child.name)}</span>
-                        <span className="text-xs text-gray-400">{child.count}</span>
+                        {child.label}
                       </Link>
                     ))}
                   </div>

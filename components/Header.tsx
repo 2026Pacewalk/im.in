@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { getCategoryTree, type CategoryNode } from "@/lib/wp";
 import MegaMenu from "@/components/MegaMenu";
 import MobileMenu from "@/components/MobileMenu";
 import CartButton from "@/components/CartButton";
@@ -16,14 +15,7 @@ function Logo() {
   );
 }
 
-export default async function Header() {
-  let tree: CategoryNode[] = [];
-  try {
-    tree = await getCategoryTree();
-  } catch {
-    tree = [];
-  }
-
+export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white/95 shadow-sm backdrop-blur">
       {/* Announcement bar */}
@@ -34,7 +26,7 @@ export default async function Header() {
       </div>
 
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3.5 md:gap-6">
-        <MobileMenu tree={tree} />
+        <MobileMenu />
         <Logo />
 
         <form action="/shop" className="relative hidden flex-1 md:block">
@@ -92,7 +84,7 @@ export default async function Header() {
         </button>
       </form>
 
-      {tree.length > 0 && <MegaMenu tree={tree} />}
+      <MegaMenu />
     </header>
   );
 }
