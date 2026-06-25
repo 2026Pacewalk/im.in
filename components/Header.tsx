@@ -54,6 +54,9 @@ export default function Header() {
           >
             ✦ AI Maker
           </Link>
+          <Link href="/rsvp" className="hover:text-brand-600">
+            RSVP
+          </Link>
           <Link href="/become-a-reseller" className="hover:text-brand-600">
             Reseller
           </Link>
