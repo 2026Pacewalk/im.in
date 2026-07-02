@@ -23,10 +23,15 @@ const TOP_SEARCHES: [string, string][] = [
 ];
 
 export default async function Home() {
+  // The homepage must never hard-crash if the backend API blips — fall back to
+  // empty sections so the page (hero, reviews, FAQ, etc.) still renders.
+  const emptyList = { items: [], total: 0, totalPages: 1 };
   const [popular, latest, cats] = await Promise.all([
-    getProducts({ perPage: 10, orderby: "popularity", order: "desc" }),
-    getProducts({ perPage: 10, orderby: "date", order: "desc" }),
-    getStoreCategories({ perPage: 12, parent: 0, orderby: "count", order: "desc" }),
+    getProducts({ perPage: 10, orderby: "popularity", order: "desc" }).catch(() => emptyList),
+    getProducts({ perPage: 10, orderby: "date", order: "desc" }).catch(() => emptyList),
+    getStoreCategories({ perPage: 12, parent: 0, orderby: "count", order: "desc" }).catch(
+      () => [] as StoreCategory[]
+    ),
   ]);
 
   const topCats: StoreCategory[] = cats

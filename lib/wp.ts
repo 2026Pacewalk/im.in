@@ -9,12 +9,33 @@ const STORE = `${SITE}/wp-json/wc/store/v1`;
 // How long (seconds) Next caches a backend response before revalidating.
 const REVALIDATE = 3600;
 
+// Fetch JSON with a retry + content-type guard. The WordPress backend
+// occasionally returns a transient 302 -> HTML page (LiteSpeed/security layer);
+// without this guard that HTML crashes JSON.parse. We validate the content-type
+// and retry once so a blip doesn't take a page down.
+async function fetchJson(url: string, revalidate: number): Promise<Response> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(url, {
+        next: { revalidate },
+        headers: { Accept: "application/json" },
+      });
+      if (!res.ok) throw new Error(`Backend ${res.status} for ${url}`);
+      const ct = res.headers.get("content-type") || "";
+      if (!ct.includes("json"))
+        throw new Error(`Non-JSON response (${ct || "unknown"}) for ${url}`);
+      return res;
+    } catch (e) {
+      lastErr = e;
+      if (attempt === 0) await new Promise((r) => setTimeout(r, 300));
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(`Fetch failed for ${url}`);
+}
+
 async function api<T>(url: string, revalidate = REVALIDATE): Promise<T> {
-  const res = await fetch(url, {
-    next: { revalidate },
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) throw new Error(`Backend ${res.status} for ${url}`);
+  const res = await fetchJson(url, revalidate);
   return res.json() as Promise<T>;
 }
 
@@ -23,11 +44,7 @@ async function apiList<T>(
   url: string,
   revalidate = REVALIDATE
 ): Promise<{ items: T[]; total: number; totalPages: number }> {
-  const res = await fetch(url, {
-    next: { revalidate },
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) throw new Error(`Backend ${res.status} for ${url}`);
+  const res = await fetchJson(url, revalidate);
   const items = (await res.json()) as T[];
   return {
     items,
@@ -353,16 +370,24 @@ export async function getProducts(q: ProductQuery = {}) {
   if (q.orderby) sp.set("orderby", q.orderby);
   if (q.order) sp.set("order", q.order);
   if (q.onSale) sp.set("on_sale", "true");
-  return apiList<StoreProduct>(`${STORE}/products?${sp.toString()}`);
+  try {
+    return await apiList<StoreProduct>(`${STORE}/products?${sp.toString()}`);
+  } catch {
+    return { items: [] as StoreProduct[], total: 0, totalPages: 1 };
+  }
 }
 
 export async function getProductBySlug(
   slug: string
 ): Promise<StoreProduct | null> {
-  const data = await api<StoreProduct[]>(
-    `${STORE}/products?slug=${encodeURIComponent(slug)}`
-  );
-  return data[0] ?? null;
+  try {
+    const data = await api<StoreProduct[]>(
+      `${STORE}/products?slug=${encodeURIComponent(slug)}`
+    );
+    return data[0] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getStoreCategories(opts?: {
@@ -376,22 +401,32 @@ export async function getStoreCategories(opts?: {
   if (opts?.parent !== undefined) sp.set("parent", String(opts.parent));
   if (opts?.orderby) sp.set("orderby", opts.orderby);
   if (opts?.order) sp.set("order", opts.order);
-  return api<StoreCategory[]>(`${STORE}/products/categories?${sp.toString()}`);
+  try {
+    return await api<StoreCategory[]>(
+      `${STORE}/products/categories?${sp.toString()}`
+    );
+  } catch {
+    return [] as StoreCategory[];
+  }
 }
 
 /** Fetch every product category (paginates through all pages). */
 export async function getAllStoreCategories(): Promise<StoreCategory[]> {
-  const first = await apiList<StoreCategory>(
-    `${STORE}/products/categories?per_page=100&page=1`
-  );
-  let all = first.items;
-  for (let p = 2; p <= first.totalPages; p++) {
-    const next = await apiList<StoreCategory>(
-      `${STORE}/products/categories?per_page=100&page=${p}`
+  try {
+    const first = await apiList<StoreCategory>(
+      `${STORE}/products/categories?per_page=100&page=1`
     );
-    all = all.concat(next.items);
+    let all = first.items;
+    for (let p = 2; p <= first.totalPages; p++) {
+      const next = await apiList<StoreCategory>(
+        `${STORE}/products/categories?per_page=100&page=${p}`
+      );
+      all = all.concat(next.items);
+    }
+    return all;
+  } catch {
+    return [] as StoreCategory[];
   }
-  return all;
 }
 
 export interface CategoryNode extends StoreCategory {
@@ -425,19 +460,27 @@ export async function getCategoryTree(): Promise<CategoryNode[]> {
 export async function getPageBySlug(
   slug: string
 ): Promise<WpContentNode | null> {
-  const data = await api<WpContentNode[]>(
-    `${WP}/pages?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
-  );
-  return data[0] ?? null;
+  try {
+    const data = await api<WpContentNode[]>(
+      `${WP}/pages?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
+    );
+    return data[0] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getPostBySlug(
   slug: string
 ): Promise<WpContentNode | null> {
-  const data = await api<WpContentNode[]>(
-    `${WP}/posts?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
-  );
-  return data[0] ?? null;
+  try {
+    const data = await api<WpContentNode[]>(
+      `${WP}/posts?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
+    );
+    return data[0] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getPosts(opts: {
@@ -450,7 +493,11 @@ export async function getPosts(opts: {
   sp.set("page", String(opts.page ?? 1));
   if (opts.categoryId) sp.set("categories", String(opts.categoryId));
   sp.set("_embed", "wp:featuredmedia");
-  return apiList<WpContentNode>(`${WP}/posts?${sp.toString()}`);
+  try {
+    return await apiList<WpContentNode>(`${WP}/posts?${sp.toString()}`);
+  } catch {
+    return { items: [] as WpContentNode[], total: 0, totalPages: 1 };
+  }
 }
 
 export async function getRecentPosts(perPage = 6) {
@@ -466,10 +513,14 @@ export async function getTermBySlug(
   taxonomy: "product_cat" | "product_tag" | "categories",
   slug: string
 ): Promise<WpTerm | null> {
-  const data = await api<WpTerm[]>(
-    `${WP}/${taxonomy}?slug=${encodeURIComponent(slug)}`
-  );
-  return data[0] ?? null;
+  try {
+    const data = await api<WpTerm[]>(
+      `${WP}/${taxonomy}?slug=${encodeURIComponent(slug)}`
+    );
+    return data[0] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
