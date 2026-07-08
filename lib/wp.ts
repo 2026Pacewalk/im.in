@@ -11,16 +11,24 @@ const REVALIDATE = 3600;
 
 // Fetch JSON with a retry + content-type guard. The WordPress backend
 // occasionally returns a transient 302 -> HTML page (LiteSpeed/security layer);
-// without this guard that HTML crashes JSON.parse. We validate the content-type
-// and retry once so a blip doesn't take a page down.
+// without this guard that HTML crashes JSON.parse.
+//
+// Cache-poisoning guard: Next caches ANY 200 response by URL when `next.revalidate`
+// is set — including a transient HTML redirect page. Once poisoned, every request
+// for the next `revalidate` seconds re-reads that cached HTML and the page stays
+// broken even after the backend recovers. So the first attempt uses the shared
+// cache, but every retry uses `cache: "no-store"` to bypass the (possibly poisoned)
+// entry and pull a fresh response straight from the network. A healthy backend then
+// recovers the page on the very next request instead of waiting out the full hour.
 async function fetchJson(url: string, revalidate: number): Promise<Response> {
   let lastErr: unknown;
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const res = await fetch(url, {
-        next: { revalidate },
-        headers: { Accept: "application/json" },
-      });
+      const init: RequestInit & { next?: { revalidate: number } } =
+        attempt === 0
+          ? { next: { revalidate }, headers: { Accept: "application/json" } }
+          : { cache: "no-store", headers: { Accept: "application/json" } };
+      const res = await fetch(url, init);
       if (!res.ok) throw new Error(`Backend ${res.status} for ${url}`);
       const ct = res.headers.get("content-type") || "";
       if (!ct.includes("json"))
@@ -28,7 +36,7 @@ async function fetchJson(url: string, revalidate: number): Promise<Response> {
       return res;
     } catch (e) {
       lastErr = e;
-      if (attempt === 0) await new Promise((r) => setTimeout(r, 300));
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 300));
     }
   }
   throw lastErr instanceof Error ? lastErr : new Error(`Fetch failed for ${url}`);
