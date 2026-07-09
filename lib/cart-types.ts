@@ -1,5 +1,5 @@
 // Shared cart types (safe to import from client and server).
-import type { CurrencyInfo } from "./wp";
+import type { CurrencyInfo } from "./store-types";
 
 export interface CartImage {
   id: number;

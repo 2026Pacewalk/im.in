@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { decode } from "@/lib/wp";
+import { decode } from "@/lib/format";
 
 interface GalleryImage {
   id: number;

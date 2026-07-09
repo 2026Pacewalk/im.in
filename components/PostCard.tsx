@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { decode, type WpContentNode } from "@/lib/wp";
+import { decode } from "@/lib/format";
+import type { WpContentNode } from "@/lib/store-types";
 
 export default function PostCard({ post }: { post: WpContentNode }) {
   const featured = post._embedded?.["wp:featuredmedia"]?.[0];

@@ -46,3 +46,9 @@ next-env.d.ts
 
 # local RSVP data store (dev only)
 /.data/
+
+# self-hosted catalog data (generated on the VPS from the live WP API)
+/data/catalog.json
+/data/catalog-images.json
+/data/products/
+/data/media/

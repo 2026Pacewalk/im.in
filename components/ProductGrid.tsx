@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
-import type { StoreProduct } from "@/lib/wp";
+import type { StoreProduct } from "@/lib/store-types";
 
 export default function ProductGrid({
   products,

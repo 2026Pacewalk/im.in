@@ -7,7 +7,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import type { StoreProduct } from "@/lib/wp";
+import type { StoreProduct } from "@/lib/store-types";
 
 // A wishlist that lives entirely in the browser (localStorage). The headless
 // backend blocks programmatic login (reCAPTCHA + login-attempt limiting and no

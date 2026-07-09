@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { decode, formatPrice } from "@/lib/wp";
+import { decode, formatPrice } from "@/lib/format";
 import WishlistButton from "@/components/WishlistButton";
 import type { WishlistItem } from "@/components/WishlistProvider";
 

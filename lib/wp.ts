@@ -65,21 +65,10 @@ async function apiList<T>(
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Decode the HTML entities WP returns in titles (e.g. &#060; &amp; &#8217;). */
-export function decode(input?: string): string {
-  if (!input) return "";
-  return input
-    .replace(/&#0*(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n: string) =>
-      String.fromCodePoint(parseInt(n, 16))
-    )
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#0?39;|&apos;/g, "'")
-    .replace(/&nbsp;/g, " ");
-}
+// Client-safe helpers (decode/money/formatPrice) live in ./format so client
+// components can import them without pulling this server module (fs/catalog)
+// into the browser bundle. Re-exported for the many server callers of "@/lib/wp".
+export { decode, money, formatPrice } from "./format";
 
 /**
  * Clean WordPress/WooCommerce HTML for display: strip scripts/styles/iframes,
@@ -335,23 +324,7 @@ export interface CurrencyInfo {
   currency_suffix?: string;
 }
 
-/** Format a Store API minor-unit amount (e.g. "199900" -> "₹1,999"). */
-export function money(amount: string | number, c: CurrencyInfo): string {
-  const unit = c.currency_minor_unit ?? 2;
-  const value = Number(amount) / Math.pow(10, unit);
-  const formatted = value.toLocaleString("en-IN", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
-  return `${c.currency_prefix || c.currency_symbol || "₹"}${formatted}${
-    c.currency_suffix || ""
-  }`;
-}
-
-export function formatPrice(p?: StorePrices, amount?: string): string {
-  if (!p) return "";
-  return money(amount ?? p.price, p);
-}
+// money() / formatPrice() are defined in ./format and re-exported at the top.
 
 // ---------------------------------------------------------------------------
 // Products (WooCommerce Store API)
@@ -368,34 +341,19 @@ export interface ProductQuery {
   onSale?: boolean;
 }
 
+// Storefront is served from the self-hosted catalog (data/catalog.json +
+// data/products/<slug>.json), generated from the live WP API. No WordPress or
+// database is needed at runtime.
 export async function getProducts(q: ProductQuery = {}) {
-  const sp = new URLSearchParams();
-  sp.set("per_page", String(q.perPage ?? 24));
-  sp.set("page", String(q.page ?? 1));
-  if (q.category) sp.set("category", q.category);
-  if (q.tag) sp.set("tag", q.tag);
-  if (q.search) sp.set("search", q.search);
-  if (q.orderby) sp.set("orderby", q.orderby);
-  if (q.order) sp.set("order", q.order);
-  if (q.onSale) sp.set("on_sale", "true");
-  try {
-    return await apiList<StoreProduct>(`${STORE}/products?${sp.toString()}`);
-  } catch {
-    return { items: [] as StoreProduct[], total: 0, totalPages: 1 };
-  }
+  const { catalogQuery } = await import("./catalog");
+  return catalogQuery(q);
 }
 
 export async function getProductBySlug(
   slug: string
 ): Promise<StoreProduct | null> {
-  try {
-    const data = await api<StoreProduct[]>(
-      `${STORE}/products?slug=${encodeURIComponent(slug)}`
-    );
-    return data[0] ?? null;
-  } catch {
-    return null;
-  }
+  const { catalogProductBySlug } = await import("./catalog");
+  return catalogProductBySlug(slug);
 }
 
 export async function getStoreCategories(opts?: {
@@ -404,37 +362,14 @@ export async function getStoreCategories(opts?: {
   orderby?: string;
   order?: string;
 }) {
-  const sp = new URLSearchParams();
-  sp.set("per_page", String(opts?.perPage ?? 50));
-  if (opts?.parent !== undefined) sp.set("parent", String(opts.parent));
-  if (opts?.orderby) sp.set("orderby", opts.orderby);
-  if (opts?.order) sp.set("order", opts.order);
-  try {
-    return await api<StoreCategory[]>(
-      `${STORE}/products/categories?${sp.toString()}`
-    );
-  } catch {
-    return [] as StoreCategory[];
-  }
+  const { catalogCategories } = await import("./catalog");
+  return catalogCategories(opts);
 }
 
-/** Fetch every product category (paginates through all pages). */
+/** Every product category from the self-hosted catalog. */
 export async function getAllStoreCategories(): Promise<StoreCategory[]> {
-  try {
-    const first = await apiList<StoreCategory>(
-      `${STORE}/products/categories?per_page=100&page=1`
-    );
-    let all = first.items;
-    for (let p = 2; p <= first.totalPages; p++) {
-      const next = await apiList<StoreCategory>(
-        `${STORE}/products/categories?per_page=100&page=${p}`
-      );
-      all = all.concat(next.items);
-    }
-    return all;
-  } catch {
-    return [] as StoreCategory[];
-  }
+  const { catalogAllCategories } = await import("./catalog");
+  return catalogAllCategories();
 }
 
 export interface CategoryNode extends StoreCategory {
@@ -521,6 +456,11 @@ export async function getTermBySlug(
   taxonomy: "product_cat" | "product_tag" | "categories",
   slug: string
 ): Promise<WpTerm | null> {
+  // product categories come from the self-hosted catalog now
+  if (taxonomy === "product_cat") {
+    const { catalogTerm } = await import("./catalog");
+    return catalogTerm(slug);
+  }
   try {
     const data = await api<WpTerm[]>(
       `${WP}/${taxonomy}?slug=${encodeURIComponent(slug)}`

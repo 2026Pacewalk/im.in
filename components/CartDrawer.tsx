@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/components/CartProvider";
-import { money, decode } from "@/lib/wp";
+import { money, decode } from "@/lib/format";
 
 export default function CartDrawer() {
   const { cart, drawerOpen, closeDrawer, update, remove, busy } = useCart();
