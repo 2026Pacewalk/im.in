@@ -71,8 +71,8 @@ export default function MegaMenu() {
 
       {/* Dropdown panel */}
       {activeItem && activeItem.children.length > 0 && (
-        <div className="absolute inset-x-0 top-full z-50 px-4">
-          <div className="mx-auto max-w-7xl">
+        <div className="pointer-events-none absolute inset-x-0 top-full z-50 px-4">
+          <div className="pointer-events-auto mx-auto max-w-7xl">
             <div className="overflow-hidden rounded-b-3xl border border-black/5 bg-white shadow-2xl ring-1 ring-black/5">
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px]">
                 {/* Children */}
