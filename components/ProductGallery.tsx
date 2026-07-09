@@ -22,7 +22,7 @@ export default function ProductGallery({
 
   if (!images || images.length === 0) {
     return (
-      <div className="relative flex aspect-square flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border border-black/5 bg-gradient-to-br from-ink via-brand-900 to-brand-700 p-8 text-center text-white">
+      <div className="relative flex aspect-[3/4] flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border border-black/5 bg-gradient-to-br from-ink via-brand-900 to-brand-700 p-8 text-center text-white">
         <span className="text-5xl">🎬</span>
         <p className="font-display text-xl font-semibold leading-snug">{name}</p>
         <p className="text-sm text-white/70">
@@ -36,7 +36,7 @@ export default function ProductGallery({
 
   return (
     <div>
-      <div className="group relative aspect-square overflow-hidden rounded-3xl border border-gold/20 bg-gradient-to-br from-brand-50 via-cream to-rose-50 p-3 shadow-[0_20px_60px_-25px_rgba(74,14,34,0.45)] ring-1 ring-black/5">
+      <div className="group relative aspect-[3/4] overflow-hidden rounded-3xl border border-gold/20 bg-gradient-to-br from-brand-50 via-cream to-rose-50 p-2 shadow-[0_20px_60px_-25px_rgba(74,14,34,0.45)] ring-1 ring-black/5">
         <Image
           key={current.id}
           src={current.src}
@@ -44,7 +44,7 @@ export default function ProductGallery({
           fill
           priority
           sizes="(max-width: 768px) 100vw, 50vw"
-          className="rounded-2xl object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+          className="rounded-2xl object-contain transition-transform duration-500 group-hover:scale-105"
         />
       </div>
 
