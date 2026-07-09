@@ -24,14 +24,14 @@ export default function ProductCard({ product }: { product: WishlistItem }) {
       <WishlistButton product={product} className="absolute right-2.5 top-2.5 z-10" />
 
       <Link href={href} className="flex flex-1 flex-col">
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-brand-50 to-cream">
+        <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-brand-50 to-cream">
           {img ? (
             <Image
               src={img.src}
               alt={img.alt ? decode(img.alt) : name}
               fill
               sizes="(max-width: 768px) 50vw, 20vw"
-              className="object-cover transition duration-500 group-hover:scale-110"
+              className="object-contain transition duration-500 group-hover:scale-105"
             />
           ) : (
             <div className="flex h-full items-center justify-center p-4 text-center text-sm font-medium text-brand-400">
