@@ -56,8 +56,21 @@ export function catalogQuery(q: ProductQuery = {}) {
   if (q.category) items = items.filter((p) => p.categories.some((c) => c.slug === q.category));
   if (q.tag) items = items.filter((p) => p.tags.some((t) => t.slug === q.tag));
   if (q.search) {
-    const s = q.search.toLowerCase();
-    items = items.filter((p) => p.name.toLowerCase().includes(s));
+    // Word-based search: every search word must appear somewhere in the
+    // product's name / categories / tags, in any order. So "baby boss" and
+    // "boss baby" both match a "Boss Baby …" product.
+    const tokens = q.search.toLowerCase().split(/[\s,]+/).filter(Boolean);
+    if (tokens.length) {
+      const hay = (p: (typeof items)[number]) =>
+        `${p.name} ${p.categories.map((c) => c.name).join(" ")} ${p.tags
+          .map((t) => t.slug)
+          .join(" ")}`
+          .toLowerCase()
+          .replace(/-/g, " ");
+      // matches ALL words; if that finds nothing, fall back to ANY word
+      const all = items.filter((p) => { const h = hay(p); return tokens.every((t) => h.includes(t)); });
+      items = all.length ? all : items.filter((p) => { const h = hay(p); return tokens.some((t) => h.includes(t)); });
+    }
   }
   if (q.onSale) items = items.filter((p) => p.on_sale);
 
