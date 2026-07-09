@@ -49,6 +49,7 @@ export default function MegaMenu() {
               key={item.label}
               href={item.href}
               onMouseEnter={() => setActive(item.label)}
+              onClick={() => setActive(null)}
               className={`flex items-center whitespace-nowrap rounded-lg px-3 py-3.5 transition hover:bg-brand-50 hover:text-brand-600 ${
                 open ? "bg-brand-50 text-brand-600" : ""
               }`}
@@ -82,6 +83,7 @@ export default function MegaMenu() {
                     </h3>
                     <Link
                       href={activeItem.href}
+                      onClick={() => setActive(null)}
                       className="text-sm font-semibold text-brand-600 transition hover:text-brand-700"
                     >
                       View all →
@@ -92,6 +94,7 @@ export default function MegaMenu() {
                       <Link
                         key={child.href + child.label}
                         href={child.href}
+                        onClick={() => setActive(null)}
                         className="truncate rounded-lg px-2.5 py-2 text-sm text-gray-600 transition hover:bg-brand-50 hover:text-brand-700"
                       >
                         {child.label}
@@ -103,6 +106,7 @@ export default function MegaMenu() {
                 {/* Featured tile */}
                 <Link
                   href={activeItem.href}
+                  onClick={() => setActive(null)}
                   className="relative flex min-h-[220px] flex-col justify-end overflow-hidden bg-gradient-to-br from-brand-700 via-brand-800 to-ink p-7 text-white"
                 >
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-soft">
