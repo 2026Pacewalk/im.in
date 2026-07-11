@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import HowItWorks from "@/components/home/HowItWorks";
@@ -6,10 +5,10 @@ import Testimonials from "@/components/home/Testimonials";
 import AiPromo from "@/components/home/AiPromo";
 import CustomCta from "@/components/home/CustomCta";
 import HomeFaq from "@/components/home/HomeFaq";
+import OccasionGrid from "@/components/home/OccasionGrid";
 import {
   getProducts,
   getStoreCategories,
-  decode,
   type StoreCategory,
 } from "@/lib/wp";
 
@@ -134,36 +133,7 @@ export default async function Home() {
           </h2>
           <div className="gold-rule mx-auto mt-4 w-24" />
         </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-          {topCats.map((c) => (
-            <Link
-              key={c.id}
-              href={`/product-category/${c.slug}`}
-              className="group relative flex h-36 items-end overflow-hidden rounded-2xl shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-            >
-              {c.image?.src ? (
-                <Image
-                  src={c.image.src}
-                  alt={c.image.alt ? decode(c.image.alt) : decode(c.name)}
-                  fill
-                  sizes="280px"
-                  className="object-cover transition duration-300 group-hover:scale-110"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-600 to-brand-800" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-              <div className="relative z-10 p-4 text-white">
-                <span className="font-display text-base font-semibold leading-tight drop-shadow-sm">
-                  {decode(c.name)}
-                </span>
-                <span className="mt-0.5 block text-xs text-white/85">
-                  {c.count} designs
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <OccasionGrid categories={topCats} />
       </section>
 
       {/* How it works */}
