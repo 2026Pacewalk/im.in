@@ -13,7 +13,11 @@ const cacheable = (source: string) => ({
 
 const nextConfig: NextConfig = {
   images: {
-    // keep optimized images in the on-disk cache for a week (fewer re-optimizes)
+    // Serve product images directly from the self-hosted files (nginx + CF edge)
+    // instead of Next's optimizer. The optimizer fetched sources over
+    // invitemart.in, which the VPS resolves to the old WordPress (some images
+    // 302 there) — making images fragile. Direct serving is reliable and faster.
+    unoptimized: true,
     minimumCacheTTL: 604800,
     remotePatterns: [
       { protocol: "https", hostname: "invitemart.in" },
