@@ -50,5 +50,6 @@ next-env.d.ts
 # self-hosted catalog data (generated on the VPS from the live WP API)
 /data/catalog.json
 /data/catalog-images.json
+/data/feed.json
 /data/products/
 /data/media/
