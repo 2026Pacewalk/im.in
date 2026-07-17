@@ -30,6 +30,9 @@ export const metadata: Metadata = {
   },
   description:
     "Create custom digital invitation cards, e-cards and invitation videos for weddings, birthdays and every celebration.",
+  verification: {
+    google: "2XqZx36NQpj93rl3SV-on0xj_BYxqgI5C643lFX7E84",
+  },
 };
 
 export default function RootLayout({
