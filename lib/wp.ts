@@ -248,6 +248,7 @@ export interface StoreProduct {
   slug: string;
   permalink: string;
   type: string;
+  sku?: string | null;
   short_description: string;
   description: string;
   on_sale: boolean;

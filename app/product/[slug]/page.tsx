@@ -96,8 +96,73 @@ export default async function ProductPage(
   // stripped and replaced by our designed HowToOrder / WhyChooseUs sections.
   const intro = productIntro(product.description, name);
 
+  // --- Product structured data (Google Merchant listings / rich results) ---
+  const minor = product.prices?.currency_minor_unit || 2;
+  const offerPrice = (
+    Number(
+      (product.on_sale ? product.prices?.sale_price : product.prices?.price) ||
+        product.prices?.price ||
+        0
+    ) / Math.pow(10, minor)
+  ).toFixed(2);
+  const productUrl = `https://invitemart.in/product/${product.slug}`;
+  const jsonLdDesc =
+    decode(String(product.short_description || product.description || "").replace(/<[^>]+>/g, " "))
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 500) || `${name} — personalised digital invitation from InviteMart.`;
+  const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  const productJsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    name,
+    description: jsonLdDesc,
+    image: (product.images || []).map((i) => i.src).slice(0, 10),
+    sku: product.sku || `im-${product.id}`,
+    brand: { "@type": "Brand", name: "InviteMart" },
+    ...(rating > 0 && product.review_count > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: rating.toFixed(1),
+            reviewCount: product.review_count,
+          },
+        }
+      : {}),
+    offers: {
+      "@type": "Offer",
+      url: productUrl,
+      priceCurrency: "INR",
+      price: offerPrice,
+      priceValidUntil,
+      availability: "https://schema.org/InStock",
+      itemCondition: "https://schema.org/NewCondition",
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "INR" },
+        shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+          transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "IN",
+        returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
+      },
+    },
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 pb-24 md:pb-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       {/* Breadcrumb */}
       <nav className="mb-6 flex flex-wrap items-center gap-1 text-sm text-gray-500">
         <Link href="/" className="hover:text-brand-600">Home</Link>
