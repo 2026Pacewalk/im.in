@@ -9,7 +9,7 @@ const INFORMATION = [
   { label: "Ganpati Invitation Card", href: "/shop?q=ganpati" },
   { label: "Festival Wishes", href: "/shop?q=festival" },
   { label: "Blogs", href: "/blog" },
-  { label: "Site Map", href: "/sitemap" },
+  { label: "Site Map", href: "/site-map" },
   { label: "Press Release", href: "/press-release" },
 ];
 

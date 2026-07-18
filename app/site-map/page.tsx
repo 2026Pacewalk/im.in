@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Sitemap | InviteMart",
   description:
     "Browse every page, category and design on InviteMart — digital invitation cards, eCards, PDFs and invitation videos for every occasion.",
-  alternates: { canonical: "/sitemap" },
+  alternates: { canonical: "/site-map" },
 };
 
 export const revalidate = 86400;

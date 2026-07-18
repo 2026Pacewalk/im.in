@@ -29,6 +29,13 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "secure.gravatar.com" },
     ],
   },
+  async redirects() {
+    return [
+      // Google Search Console had /sitemap (the HTML page) submitted as a
+      // sitemap. Redirect it to the real XML so the submission resolves.
+      { source: "/sitemap", destination: "/sitemap.xml", permanent: true },
+    ];
+  },
   async headers() {
     return [
       cacheable("/"),

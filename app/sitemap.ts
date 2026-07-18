@@ -9,7 +9,7 @@ const STATIC_PAGES = [
   "/privacy-policy", "/terms-conditions", "/return-policy",
   "/gst-pay-online", "/become-a-reseller", "/discount-offers-coupon-code",
   "/wedding-invitations", "/caricature-invitations",
-  "/ai-invitation-maker", "/free-festival-invitations", "/rsvp", "/sitemap",
+  "/ai-invitation-maker", "/free-festival-invitations", "/rsvp", "/site-map",
 ];
 
 export const revalidate = 86400;
